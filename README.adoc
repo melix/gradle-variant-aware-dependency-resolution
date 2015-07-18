@@ -1,4 +1,16 @@
-= Convention over configuration: The Gradle Way
+= Variant aware dependency resolution in Gradle
 
-Slides for talk given at BordeauxJUG, May 5, 2015
+Describes work in progress in Gradle, for JVM variant aware dependency resolution
+
+Build slides:
+
+```
+./gradlew asciidoctor
+```
+
+Generate PDF:
+
+```
+./gradlew generatePdf
+```
 
