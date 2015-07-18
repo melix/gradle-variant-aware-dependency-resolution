@@ -1,0 +1,26 @@
+plugins {
+    id 'jvm-component'
+    id 'java-lang'
+}
+
+// tag::model[]
+model {
+    components {
+        main(JvmLibrarySpec) {
+            targetPlatform 'java6'
+            targetPlatform 'java7'
+            sources {
+		java {
+		    dependencies {
+		        library 'other'
+		    }
+		}
+	    }
+        }
+	other(JvmLibrarySpec) {
+            targetPlatform 'java7'
+        }
+    }
+}
+// end::model[]
+

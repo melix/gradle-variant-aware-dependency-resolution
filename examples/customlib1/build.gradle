@@ -1,0 +1,77 @@
+import org.gradle.platform.base.internal.PlatformResolvers
+import org.gradle.platform.base.internal.DefaultPlatformRequirement
+
+plugins {
+    id 'jvm-component'
+    id 'java-lang'
+}
+
+// tag::plugin[]
+interface MyLib extends LibrarySpec {}
+class DefaultMyLib extends BaseComponentSpec implements MyLib {}
+
+class ComponentTypeRules extends RuleSource {
+
+    @ComponentType
+    void registerComponent(
+            ComponentTypeBuilder<MyLib> builder) {
+        builder.defaultImplementation(DefaultMyLib)
+    }
+
+    @ComponentBinaries
+    void createBinaries(
+            ModelMap<JarBinarySpec> binaries,
+            MyLib library,
+            PlatformResolvers platforms,
+            @Path("buildDir") File buildDir,
+            JavaToolChainRegistry toolChains) {
+
+        def platform = platforms.resolve(JavaPlatform, DefaultPlatformRequirement.create("java${JavaVersion.current().majorVersion}"))
+        def toolChain = toolChains.getForPlatform(platform)
+        def baseName = "${library.name}"
+        String binaryName = "${baseName}Jar"
+        binaries.create(binaryName) { jar ->
+            jar.toolChain = toolChain
+            jar.targetPlatform = platform
+        }
+    }
+
+}
+
+apply type: ComponentTypeRules
+// end::plugin[]
+
+/*
+// tag::model1[]
+
+model {
+    components {
+        main(MyLib) {
+            sources {
+                java(JavaSourceSet)
+            }
+        }
+    }
+}// end::model1[]
+*/
+
+// tag::model2[]
+model {
+    components {
+        main(MyLib) {
+            sources {
+                java(JavaSourceSet) {
+                    dependencies {
+                        library 'other'
+                    }
+                }
+            }
+        }
+        other(MyLib) {
+            sources {
+                java(JavaSourceSet)
+            }
+        }
+    }
+}
+// end::model2[]

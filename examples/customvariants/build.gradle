@@ -1,0 +1,113 @@
+import org.gradle.platform.base.internal.PlatformResolvers
+import org.gradle.platform.base.internal.DefaultPlatformRequirement
+
+plugins {
+    id 'jvm-component'
+    id 'java-lang'
+}
+
+// tag::library_definition[]
+trait MyLib implements LibrarySpec {
+    List<String> flavors = []
+    void flavors(String... flavors) { this.flavors.addAll(flavors as List) }
+}
+class DefaultMyLib extends BaseComponentSpec implements MyLib {}
+// end::library_definition[]
+
+// tag::binaryspec[]
+@Managed
+interface MyJar extends JarBinarySpec {
+    @Variant
+    String getFlavor()
+    void setFlavor(String flavor)
+}
+// end::binaryspec[]
+
+class ComponentTypeRules extends RuleSource {
+
+    @ComponentType
+    void registerComponent(
+            ComponentTypeBuilder<MyLib> builder) {
+        builder.defaultImplementation(DefaultMyLib)
+    }
+
+    @ComponentBinaries
+    void createBinaries(
+            ModelMap<MyJar> binaries,
+            MyLib library,
+            PlatformResolvers platforms,
+            @Path("buildDir") File buildDir,
+            JavaToolChainRegistry toolChains) {
+
+        def platform = platforms.resolve(JavaPlatform, DefaultPlatformRequirement.create("java${JavaVersion.current().majorVersion}"))
+        def toolChain = toolChains.getForPlatform(platform)
+        def baseName = "${library.name}"
+        // tag::createbinaries[]
+        library.flavors.each { flavor ->
+            String binaryName = "${baseName}${flavor.capitalize()}Jar"
+            binaries.create(binaryName) { jar ->
+                jar.toolChain = toolChain
+                jar.targetPlatform = platform
+                jar.flavor = flavor
+            }
+        }
+        // end::createbinaries[]
+    }
+
+}
+
+apply type: ComponentTypeRules
+
+// tag::model2[]
+model {
+    components {
+        main(MyLib) {
+            flavors 'free','paid'
+            sources {
+                java(JavaSourceSet) {
+                    dependencies {
+                        library 'other'
+                    }
+                }
+            }
+        }
+        other(MyLib) {
+            flavors 'free'
+            sources {
+                java(JavaSourceSet)
+            }
+        }
+    }
+}
+// end::model2[]
+
+model {
+    components {
+        third(MyLib) {
+            flavors 'demo','sharewhare'
+            sources {
+                java(JavaSourceSet)
+            }
+        }
+        fourth(MyLib) {
+            flavors 'free','paid'
+            sources {
+                java(JavaSourceSet) {
+                    dependencies {
+                        library 'third'
+                    }
+                }
+            }
+        }
+        fifth(JvmLibrarySpec) {
+            sources {
+                java {
+                    dependencies {
+                        library 'third'
+                    }
+                }
+            }
+        }
+    }
+}
+

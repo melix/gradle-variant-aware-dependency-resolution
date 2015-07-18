@@ -1,0 +1,13 @@
+rootProject.name = 'variant-aware-dep-mgmt'
+
+new File('examples').eachFile {
+   if (it.directory) {
+      include it.name
+   }
+}
+
+
+rootProject.children.each {project ->
+    String projectDirName = "examples/${project.name}"
+    project.projectDir = new File(settingsDir, projectDirName)
+}

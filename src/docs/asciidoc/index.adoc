@@ -1,0 +1,325 @@
+= Variant-aware dependency management with Gradle
+Cédric Champeau <http://twitter.com/CedricChampeau[@CedricChampeau]>
+2015-07-21
+:revnumber: {project-version}
+:example-caption!:
+ifndef::imagesdir[:imagesdir: images]
+ifndef::sourcedir[:sourcedir: ../java]
+:deckjs_transition: fade
+:navigation:
+:menu:
+:goto:
+:status:
+:adoctor: http://asciidoctor.org/[Asciidoctor]
+:gradle: http://gradle.org[Gradle]
+:deckjs: http://imakewebthings.com/deck.js/[deck.js]
+:deck2pdf: https://github.com/melix/deck2pdf[deck2pdf]
+
+== Principles
+
+* Work done as part of Google Milestone B
+* main focus on JVM dependency management
+* impact on `dependency-management`, `platform-base`, `platform-jvm` and `languageJava`
+* so far, supports only *local, inter-project dependencies*
+
+== Declaring a dependency
+=== Declare a dependency on a library of the same project
+
+```groovy
+model {
+    components {
+        main(JvmLibrarySpec) {
+            sources {
+                java {
+                    dependencies {
+                        library 'dep'
+                    }
+                }
+            }
+        }
+        dep(JvmLibrarySpec)
+    }
+}
+```
+
+=== Declare a dependency on a library from another project
+
+```groovy
+model {
+    components {
+        main(JvmLibrarySpec) {
+            sources {
+                java {
+                    dependencies {
+                        project ':other' library 'dep'
+                    }
+                }
+            }
+        }
+        dep(JvmLibrarySpec)
+    }
+}
+```
+
+=== Shortcut notation if target project only has one library
+
+```groovy
+model {
+    components {
+        main(JvmLibrarySpec) {
+            sources {
+                java {
+                    dependencies {
+                        project ':other'
+                    }
+                }
+            }
+        }
+        dep(JvmLibrarySpec)
+    }
+}
+```
+
+== Platform-aware dependency management
+
+=== Declaring target platform of a component
+
+```groovy
+model {
+    components {
+        main(JvmLibrarySpec) {
+            targetPlatform 'java6'
+            targetPlatform 'java7'
+        }
+	other(JvmLibrarySpec) {
+            targetPlatform 'java7'
+        }
+    }
+}
+```
+
+=== Dependencies with platforms (1/3)
+
+```groovy
+include::{examples}/platform-aware/build.gradle[tags=model]
+```
+
+=== Dependencies with platforms (2/3)
+
+```
+$ ./gradlew platform-aware:java7MainJar
+:platform-aware:compileOtherJarOtherJava
+:platform-aware:createOtherJar
+:platform-aware:otherJar
+:platform-aware:compileJava7MainJarMainJava
+:platform-aware:createJava7MainJar
+:platform-aware:java7MainJar
+
+BUILD SUCCESSFUL
+
+Total time: 1.264 secs
+```
+
+=== Dependencies with platforms (3/3)
+
+```
+$ ./gradlew platform-aware:java6MainJar
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Could not resolve all dependencies for 'Jar 'java6MainJar'' source set 'Java source 'main:java''
+> Cannot find a compatible binary for library 'other' (Java SE 6). Available platforms: [Java SE 7]
+
+* Try:
+Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output.
+
+BUILD FAILED
+
+Total time: 1.169 secs
+```
+
+=== In short
+
+* A component can target multiple versions of Java
+* Produces as many jars as there are target platforms
+* By default, will use the platform Gradle is executed with
+* A dependency will resolve to the *highest compatible version*
+* Error messages tell which platforms are available
+
+== Custom libraries
+
+* It is possible to define *custom library types*
+* To be compatible with JVM dependency management, they have to
+** extend `LibrarySpec`
+** produce at least one binary of type `JarBinarySpec`
+
+=== Example
+
+```groovy
+include::{examples}/customlib1/build.gradle[tags=plugin]
+```
+
+=== Usage
+
+```groovy
+include::{examples}/customlib1/build.gradle[tags=model1]
+```
+
+=== Dependencies onto custom components
+
+```groovy
+include::{examples}/customlib1/build.gradle[tags=model2]
+```
+
+=== What depends on what?
+
+* A `JvmLibrarySpec` can depend on a `CustomLib`
+* A `CustomLib` can depend on a `JvmLibrarySpec`
+* Combibations of the above
+
+== Defining custom binaries
+
+* Custom binaries are the entry point for custom variants
+* Can be unmanaged or `@Managed`
+
+=== Example
+
+```groovy
+include::{examples}/customlib2/build.gradle[tags=plugin]
+
+...
+
+include::{examples}/customlib2/build.gradle[tags=plugin2,indent=4]
+
+...
+```
+
+== Custom variant dimensions
+=== Main steps
+
+* Define a custom library type
+* Define a custom binary type
+* Annotate some properties with `@Variant`
+
+=== `@Variant`
+
+* Must be set on a getter
+* The type can be either a `String`
+* or a `? extend Named`
+
+=== Define a custom library type
+
+* The library interface also defines the DSL
+```groovy
+include::{examples}/customvariants/build.gradle[tags=library_definition]
+```
+
+=== Define the binary type
+
+```groovy
+include::{examples}/customvariants/build.gradle[tags=binaryspec]
+```
+
+=== Update the `@ComponentBinaries` method to create binaries
+
+```groovy
+include::{examples}/customvariants/build.gradle[tags=createbinaries]
+```
+
+=== Describe the components
+
+```
+include::{examples}/customvariants/build.gradle[tags=model2]
+```
+
+=== Build the "free" variant
+
+```
+$ ./gradlew customvariants:mainFreeJar
+...
+:customvariants:compileOtherFreeJarOtherJava
+:customvariants:createOtherFreeJar
+:customvariants:otherFreeJar
+:customvariants:compileMainFreeJarMainJava
+:customvariants:createMainFreeJar
+:customvariants:mainFreeJar
+
+BUILD SUCCESSFUL
+
+Total time: 2.08 secs
+```
+
+=== Build the "paid" variant
+
+```
+$ gw customvariants:mainPaidJar
+...
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Could not resolve all dependencies for 'Jar 'mainPaidJar'' source set 'Java source 'main:java''
+> Cannot find a compatible binary for library 'other' (Java SE 8).
+      Required platform 'java8', available: 'java8'
+      Required flavor 'paid', available: 'free'
+
+
+* Try:
+Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output.
+
+```
+
+=== Detailed errors (1/2)
+
+```
+$ ./gradlew customvariants:fourthFreeJar
+...
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Could not resolve all dependencies for 'Jar 'fourthFreeJar'' source set 'Java source 'fourth:java''
+> Cannot find a compatible binary for library 'third' (Java SE 8).
+      Required platform 'java8', available: 'java8' on Jar 'thirdDemoJar','java8' on Jar 'thirdSharewhareJar'
+      Required flavor 'free', available: 'demo' on Jar 'thirdDemoJar','sharewhare' on Jar 'thirdSharewhareJar'
+
+```
+
+=== Detailed errors (2/2)
+
+```
+$ gw customvariants:fifthJar
+...
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Could not resolve all dependencies for 'Jar 'fifthJar'' source set 'Java source 'fifth:java''
+> Multiple binaries available for library 'third' (Java SE 8) :
+     - Jar 'thirdDemoJar':
+         * flavor 'demo'
+         * targetPlatform 'java8'
+     - Jar 'thirdSharewhareJar':
+         * flavor 'sharewhare'
+         * targetPlatform 'java8'
+```
+
+== How matching works
+
+* `JavaPlatform` matches the *highest compatible platform*
+* If a variant is `null` in either the consumer or the candidate library: dimension is *ignored*
+* If a variant is not null:
+** if the type is `String`, matches *stricly*
+** if the type is `Named`, matches *strictly* on `getName()`, unless a custom `VariantDimensionSelector` is provided
+** `JavaPlatform` is handled through a specific `VariantDimensionSelector` (`DefaultJavaPlatformVariantDimensionSelector`)
+
+== What's left to do?
+
+* (WIP) Handle `@Variant` through `ModelSchema`
+* Allow libraries to be implemented as `@Managed` types
+* Support for external dependencies
+* Migrate the native plugin to the new infrastructure
+
+=== Questions?
+

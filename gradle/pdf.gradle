@@ -1,0 +1,20 @@
+configurations {
+    pdf
+}
+repositories {
+    mavenLocal()
+}
+dependencies {
+    pdf 'com.github.melix:deck2pdf:0.2'
+}
+
+task generatePdf(type:JavaExec) {
+    dependsOn asciidoctor
+    main = 'me.champeau.deck2pdf.Main'
+    workingDir = file("$buildDir/asciidoc/revealjs")
+    args = ['index.html',"${project.name}.pdf",'--profile=revealjs']
+    classpath = configurations.pdf
+
+    inputs.file("$workingDir/index.html")
+    outputs.file("$workingDir/${project.name}.pdf")
+}
