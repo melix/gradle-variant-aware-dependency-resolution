@@ -20,6 +20,7 @@ model {
 // end::android_like[]
 */
 
+/*
 // tag::ideal[]
 
 model {
@@ -47,3 +48,4 @@ model {
 }
 
 // end::ideal[]
+*/
