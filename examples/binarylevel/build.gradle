@@ -3,6 +3,23 @@ plugins {
     id 'java-lang'
 }
 
+/*
+// tag::android_like[]
+model {
+    components {
+        main(AndroidLikeLib) {
+            flavors 'free', 'paid'
+            sources {
+                paid {
+                    // some extra dependencies for paid flavor
+                }
+            }
+        }
+    }
+}
+// end::android_like[]
+*/
+
 // tag::ideal[]
 
 model {

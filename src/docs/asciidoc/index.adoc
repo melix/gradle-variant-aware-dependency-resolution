@@ -314,7 +314,17 @@ Could not resolve all dependencies for 'Jar 'fifthJar'' source set 'Java source 
 
 == Bonus: binary-level dependencies
 
-=== What it should be?
+=== Variant-specific dependencie
+
+* A *source set* can define its own dependencies
+
+```groovy
+include::{examples}/binarylevel/build.gradle[tags=android_like]
+```
+
+=== Shared source set dependencies
+
+* But for a shared source set?
 
 ```groovy
 include::{examples}/binarylevel/build.gradle[tags=ideal]
