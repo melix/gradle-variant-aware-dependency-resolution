@@ -1,0 +1,32 @@
+plugins {
+    id 'jvm-component'
+    id 'java-lang'
+}
+
+// tag::ideal[]
+
+model {
+    components {
+        main(JvmLibrarySpec) {
+            targetPlatform 'java6'
+            targetPlatform 'java7'
+            binaries.named('java6MainJar') {
+                sources.named('java') {
+                    source.srcDir file("$projectDir/src/main/java7compat")
+                }
+            }
+            binaries.named('java7MainJar') {
+                sources.named('java') {
+                    dependencies {
+                        library 'dep'
+                    }
+                }
+            }
+        }
+        dep(JvmLibrarySpec) {
+            targetPlatform 'java7'
+        }
+    }
+}
+
+// end::ideal[]

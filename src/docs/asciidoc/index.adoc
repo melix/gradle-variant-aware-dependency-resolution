@@ -312,9 +312,42 @@ Could not resolve all dependencies for 'Jar 'fifthJar'' source set 'Java source 
 ** if the type is `Named`, matches *strictly* on `getName()`, unless a custom `VariantDimensionSelector` is provided
 ** `JavaPlatform` is handled through a specific `VariantDimensionSelector` (`DefaultJavaPlatformVariantDimensionSelector`)
 
+== Bonus: binary-level dependencies
+
+=== What it should be?
+
+```groovy
+include::{examples}/binarylevel/build.gradle[tags=ideal]
+```
+
+=== What we can do?
+
+* Create new binary level source sets
+* But no variation of dependencies for a specific source set
+
+```
+model {
+    components {
+        main(JvmLibrarySpec) {
+            targetPlatform 'java6'
+            targetPlatform 'java7'
+            binaries.named('java6MainJar') {
+                sources {
+                    java6(JavaSourceSet) // creates a Java 6 specific source set
+                    dependencies {
+                        project ':other' library 'lib'
+                    }
+                }
+            }
+        }
+    }
+}
+```
+
 == What's left to do?
 
 * (WIP) Handle `@Variant` through `ModelSchema`
+* Really allow binary level dependencies to be defined
 * Allow libraries to be implemented as `@Managed` types
 * Support for external dependencies
 * Migrate the native plugin to the new infrastructure
