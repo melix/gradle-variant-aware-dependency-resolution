@@ -12,12 +12,12 @@ model {
             sources {
 		java {
 		    dependencies {
-		        library 'other'
+		        library 'dep'
 		    }
 		}
 	    }
         }
-	other(JvmLibrarySpec) {
+	dep(JvmLibrarySpec) {
             targetPlatform 'java7'
         }
     }

@@ -62,12 +62,12 @@ model {
             sources {
                 java(JavaSourceSet) {
                     dependencies {
-                        library 'other'
+                        library 'dep'
                     }
                 }
             }
         }
-        other(MyLib) {
+        dep(MyLib) {
             sources {
                 java(JavaSourceSet)
             }

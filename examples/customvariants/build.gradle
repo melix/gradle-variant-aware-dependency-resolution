@@ -66,12 +66,12 @@ model {
             sources {
                 java(JavaSourceSet) {
                     dependencies {
-                        library 'other'
+                        library 'dep'
                     }
                 }
             }
         }
-        other(MyLib) {
+        dep(MyLib) {
             flavors 'free'
             sources {
                 java(JavaSourceSet)

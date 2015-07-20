@@ -56,7 +56,6 @@ model {
                 }
             }
         }
-        dep(JvmLibrarySpec)
     }
 }
 ```
@@ -75,7 +74,6 @@ model {
                 }
             }
         }
-        dep(JvmLibrarySpec)
     }
 }
 ```
@@ -91,7 +89,7 @@ model {
             targetPlatform 'java6'
             targetPlatform 'java7'
         }
-	other(JvmLibrarySpec) {
+	dep(JvmLibrarySpec) {
             targetPlatform 'java7'
         }
     }
@@ -108,9 +106,9 @@ include::{examples}/platform-aware/build.gradle[tags=model]
 
 ```
 $ ./gradlew platform-aware:java7MainJar
-:platform-aware:compileOtherJarOtherJava
-:platform-aware:createOtherJar
-:platform-aware:otherJar
+:platform-aware:compileDepJarDepJava
+:platform-aware:createDepJar
+:platform-aware:depJar
 :platform-aware:compileJava7MainJarMainJava
 :platform-aware:createJava7MainJar
 :platform-aware:java7MainJar
@@ -129,7 +127,7 @@ FAILURE: Build failed with an exception.
 
 * What went wrong:
 Could not resolve all dependencies for 'Jar 'java6MainJar'' source set 'Java source 'main:java''
-> Cannot find a compatible binary for library 'other' (Java SE 6). Available platforms: [Java SE 7]
+> Cannot find a compatible binary for library 'dep' (Java SE 6). Available platforms: [Java SE 7]
 
 * Try:
 Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output.
@@ -238,9 +236,9 @@ include::{examples}/customvariants/build.gradle[tags=model2]
 ```
 $ ./gradlew customvariants:mainFreeJar
 ...
-:customvariants:compileOtherFreeJarOtherJava
-:customvariants:createOtherFreeJar
-:customvariants:otherFreeJar
+:customvariants:compileDepFreeJarDepJava
+:customvariants:createDepFreeJar
+:customvariants:depFreeJar
 :customvariants:compileMainFreeJarMainJava
 :customvariants:createMainFreeJar
 :customvariants:mainFreeJar
@@ -260,7 +258,7 @@ FAILURE: Build failed with an exception.
 
 * What went wrong:
 Could not resolve all dependencies for 'Jar 'mainPaidJar'' source set 'Java source 'main:java''
-> Cannot find a compatible binary for library 'other' (Java SE 8).
+> Cannot find a compatible binary for library 'dep' (Java SE 8).
       Required platform 'java8', available: 'java8'
       Required flavor 'paid', available: 'free'
 
